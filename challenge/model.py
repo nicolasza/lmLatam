@@ -9,7 +9,7 @@ class DelayModel:
 
     variables_necesarias=['Fecha-O','Fecha-I','OPERA','TIPOVUELO','MES']
 
-    top_10_features = [
+    top_features = [
     "OPERA_Latin American Wings", 
     "MES_7",
     "MES_10",
@@ -33,7 +33,7 @@ class DelayModel:
         self,
         data: pd.DataFrame,
         target_column: str = None
-    ) -> Union(Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame):
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
         """
         Prepare raw data for training or predict.
 
@@ -63,7 +63,7 @@ class DelayModel:
         pd.get_dummies(data['MES'], prefix = 'MES')], 
         axis = 1
         )
-        top_features=features[self.top_10_features]
+        top_features=features[self.top_features]
 
         if(target_column!=None):
             target = data[target_column]
@@ -84,9 +84,9 @@ class DelayModel:
             target (pd.DataFrame): target.
         """
         """CEHQUEO QUE EXISTAN LAS FEATURES"""
-        if not set(self.variables_necesarias).issubset(features.columns):
+        if not set(self.top_features).issubset(features.columns):
             # Lanza una excepción si falta alguna columna
-            raise ValueError(f"Faltan las siguientes columnas: {set(self.variables_necesarias) - set(features.columns)}")
+            raise ValueError(f"Faltan las siguientes columnas: {set(self.top_features) - set(features.columns)}")
         
         """Calculo de balanceo para modelo"""
         n_y0 = len(target[target == 0])
@@ -115,7 +115,7 @@ class DelayModel:
         """
 
         """CEHQUEO QUE EXISTAN LAS FEATURES"""
-        if not set(self.variables_necesarias).issubset(features.columns):
+        if not set(self.top_features).issubset(features.columns):
             # Lanza una excepción si falta alguna columna
             raise ValueError(f"Faltan las siguientes columnas: {set(self.variables_necesarias) - set(features.columns)}")
         
@@ -127,7 +127,7 @@ class DelayModel:
 
         return self._model.predict(features)
     
-    def get_min_diff(data):
+    def get_min_diff(self,data):
         fecha_o = datetime.strptime(data['Fecha-O'], '%Y-%m-%d %H:%M:%S')
         fecha_i = datetime.strptime(data['Fecha-I'], '%Y-%m-%d %H:%M:%S')
         min_diff = ((fecha_o - fecha_i).total_seconds())/60
