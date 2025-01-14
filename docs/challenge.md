@@ -11,3 +11,8 @@
 * cree modelo para uso de api y modifique el archivo api para mantener el modelo en memoria.
 * cree modelAPI para mejor manejo de validacion de data y uso de prediccion.
 * cree modeloPrediccion para el manejo de entrada de datos para fastapi
+
+## Part 3
+* Cree archivo dockerfile para generar contenedor de api
+* compilacion: docker build -t desafioLM .
+* run: docker run -d -p 8000:8000 my-fastapi-app
