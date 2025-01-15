@@ -24,6 +24,7 @@ class DelayModel:
 
     threshold_in_minutes = 15
 
+
     def __init__(
         self
     ):
@@ -66,7 +67,7 @@ class DelayModel:
         top_features=features[self.top_features]
 
         if(target_column!=None):
-            target = data[target_column]
+            target = pd.DataFrame(data[target_column], columns=[target_column])
             return (top_features,target)
         else:
             return top_features
@@ -89,8 +90,9 @@ class DelayModel:
             raise ValueError(f"Faltan las siguientes columnas: {set(self.top_features) - set(features.columns)}")
         
         """Calculo de balanceo para modelo"""
-        n_y0 = len(target[target == 0])
-        n_y1 = len(target[target == 1])
+        targetcol = target.iloc[:, 0]
+        n_y0 = len(targetcol[targetcol == 0])
+        n_y1 = len(targetcol[targetcol == 1])
         scale = n_y0/n_y1
         
         """ instancio Modelo"""
@@ -121,11 +123,13 @@ class DelayModel:
         
         """CHEQUEO DE QUE EXISTA EL MODELO"""
         if self._model==None:
-            raise Exception("No se ha realizado fit de modelo.")
+            #si no existe modelo retorno array de datos default -1
+            int_list = [-1] * features.shape[0] 
+            return int_list
         
 
 
-        return self._model.predict(features)
+        return self._model.predict(features).tolist()
     
     def get_min_diff(self,data):
         fecha_o = datetime.strptime(data['Fecha-O'], '%Y-%m-%d %H:%M:%S')
