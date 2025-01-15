@@ -29,9 +29,9 @@ jobs:
           push: true
           tags: nicolaszagu/lmlatam:latest
 
-      # Solo ejecutar el paso de build y push a otro tag cuando no sea desde la rama main
-      - name: Build and push
-        if: github.ref != 'refs/heads/main'  
+      # Solo ejecutar el paso de build y push a otro tag cuando sea la rama develop
+      - name: Build and push test
+        if: github.ref == 'refs/heads/develop'  
         uses: docker/build-push-action@v6
         with:
           push: true
