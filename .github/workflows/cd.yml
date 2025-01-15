@@ -29,6 +29,23 @@ jobs:
           push: true
           tags: nicolaszagu/lmlatam:latest
 
+      - name: Google Auth
+        id: auth
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' 
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCLOUDSECRET }}'
+          token_format: 'access_token'
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' 
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: mllatam
+          region: us-central1
+          image: docker.io/nicolaszagu/mllatam:latest
+
       # Solo ejecutar el paso de build y push a otro tag cuando no sea desde la rama main
       - name: Build and push
         if: github.ref != 'refs/heads/main'  
