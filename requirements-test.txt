@@ -1,6 +1,8 @@
-locust~=1.6
+locust~=2.32.6
 coverage~=5.5
 pytest~=6.2.5
 pytest-cov~=2.12.1
 mockito~=1.2.2
 httpx~=0.28.1
+charset-normalizer~=3.4.1 
+Brotli~=1.0.9
