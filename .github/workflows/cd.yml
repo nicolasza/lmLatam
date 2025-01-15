@@ -38,6 +38,7 @@ jobs:
           tags: nicolaszagu/lmlatam:test
   gcloud-upload:
       runs-on: ubuntu-latest
+      needs: build-and-push-docker 
       environment: production
       steps:
         # Clonar el repositorio
