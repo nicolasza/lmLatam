@@ -44,6 +44,5 @@ async def post_predict(solicitud: modeloPrediccion.SolicitudVuelos) -> dict:
         raise fastapi.HTTPException(status_code=500, detail="Error interno del servidor")
 
     return {
-        "status": "OK",
         "predict": resp
         }

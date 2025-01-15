@@ -105,6 +105,6 @@ class DelayAPI:
         
         """Comparo si existen las columnas necesarias"""
         if set(features.columns) == set(self.model.top_features):
-           return self.model.predict(features).tolist()[0] # ajuste de formato para el retorno
+           return self.model.predict(features)[0] # ajuste de formato para el retorno
         else:
             raise ValueError("No coinciden las columnas")
