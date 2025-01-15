@@ -16,51 +16,55 @@ jobs:
       # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          ref: ${{ github.event.workflow_run.head_branch }}
 
-      # Solo ejecutar el paso de build y push cuando sea desde la rama main
-      - name: Build and push
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' 
-        uses: docker/build-push-action@v6
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
         with:
-          push: true
-          tags: nicolaszagu/lmlatam:latest
+          credentials_json: '${{ secrets.GCLOUDSECRET }}'
 
-      # Solo ejecutar el paso de build y push a otro tag cuando sea la rama develop
-      - name: Build and push test
-        if: github.ref == 'refs/heads/develop'  
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          tags: nicolaszagu/lmlatam:test
+      - name: Configure Docker to use gcloud as a credential helper
+        run: |
+          gcloud auth configure-docker
+
+      # Construir y subir la imagen de Docker a Google Container Registry (latest)
+      - name: Build and push Docker image to Google Container Registry (latest)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+        run: |
+          docker build -t gcr.io/lmlatam/mllatam:latest .
+          docker push gcr.io/lmlatam/mllatam:latest
+
+      # Construir y subir la imagen de Docker a Google Container Registry (test)
+      - name: Build and push Docker image to Google Container Registry (test)
+        if: github.ref == 'refs/heads/develop' && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
+        run: |
+          docker build -t gcr.io/lmlatam/mllatam:test .
+          docker push gcr.io/lmlatam/mllatam:test
 
   gcloud-upload:
     runs-on: ubuntu-latest
     needs: build-and-push-docker 
     environment: production
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch') }}
     steps:
       # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Google Auth
         id: auth
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' 
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCLOUDSECRET }}'
           token_format: 'access_token'
 
-      - name: Deploy to Cloud Run
-        id: deploy
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' 
+      - name: Deploy to Cloud Run (latest)
+        id: deploy-latest
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: mllatam
-          image: docker.io/nicolaszagu/mllatam:latest
+          image: gcr.io/lmlatam/mllatam:latest
