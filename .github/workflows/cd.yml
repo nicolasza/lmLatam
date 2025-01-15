@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ github.event.workflow_run.head_branch || github.head_ref }}
 
       - name: Google Auth
         id: auth
@@ -31,14 +31,14 @@ jobs:
 
       # Construir y subir la imagen de Docker a Google Container Registry (latest)
       - name: Build and push Docker image to Google Container Registry (latest)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+        if: (github.ref == 'refs/heads/main' || github.base_ref == 'main') && github.event_name == 'workflow_dispatch'
         run: |
           docker build -t gcr.io/lmlatam/mllatam:latest .
           docker push gcr.io/lmlatam/mllatam:latest
 
       # Construir y subir la imagen de Docker a Google Container Registry (test)
       - name: Build and push Docker image to Google Container Registry (test)
-        if: github.ref == 'refs/heads/develop' && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
+        if: (github.ref == 'refs/heads/develop' || github.base_ref == 'develop') && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
         run: |
           docker build -t gcr.io/lmlatam/mllatam:test .
           docker push gcr.io/lmlatam/mllatam:test
@@ -47,13 +47,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-docker 
     environment: production
-    if: ${{ github.ref == 'refs/heads/main' && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' }}
     steps:
       # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ github.event.workflow_run.head_branch || github.head_ref }}
 
       - name: Google Auth
         id: auth

@@ -19,3 +19,7 @@ VERSION DE PYTHON UTILIZADO: 3.9.21
 * run: docker run -d -p 8000:8000 lmlatam
 * monte contenedor en gcp a traves de cloud run
 * url: https://mllatam-379742316336.us-central1.run.app
+
+## part 4
+* CI: cree el action en base a las pruebas implementadas en make
+* CD: creo el contenedor docker y lo actualizo en el gcloud , hubo dificultad con los permisos de google, primero probe con docker pero no tiene acceso desde gcloud, por lo que lo cambie para gcloud solamente.
