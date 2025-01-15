@@ -1,3 +1,4 @@
+VERSION DE PYTHON UTILIZADO: 3.9.21
 ## Part1
 * ejecucion de book
 * realice correccion al momento de plotear los datos, faltaba especificar los ejes.
@@ -14,5 +15,7 @@
 
 ## Part 3
 * Cree archivo dockerfile para generar contenedor de api
-* compilacion: docker build -t desafioLM .
-* run: docker run -d -p 8000:8000 my-fastapi-app
+* compilacion: docker build -t lmlatam .
+* run: docker run -d -p 8000:8000 lmlatam
+* monte contenedor en gcp a traves de cloud run
+* url: https://mllatam-379742316336.us-central1.run.app
