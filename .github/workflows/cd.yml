@@ -1,70 +1,71 @@
-name: 'Continuous Delivery'
+name: 'Continuous Deployment'
 
 on:
   workflow_run:
     workflows: ["Continuous Integration"]
     types:
       - completed
-  workflow_dispatch:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GAR_LOCATION: us-central1
+  GAR_REPO: ml-models
+  IMAGE_NAME: mldelay
+  SERVICE: delayfly
+  REGION: us-central1
 
 jobs:
   build-and-push-docker:
     runs-on: ubuntu-latest
-    environment: production
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
     steps:
-      # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.head_ref }}
 
-      - name: Google Auth
-        id: auth
+      - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCLOUDSECRET }}'
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Configure Docker to use gcloud as a credential helper
-        run: |
-          gcloud auth configure-docker
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
 
-      # Construir y subir la imagen de Docker a Google Container Registry (latest)
-      - name: Build and push Docker image to Google Container Registry (latest)
-        if: (github.ref == 'refs/heads/main' || github.base_ref == 'main') && github.event_name == 'workflow_dispatch'
+      - name: Configure Docker for Artifact Registry
         run: |
-          docker build -t gcr.io/lmlatam/mllatam:latest .
-          docker push gcr.io/lmlatam/mllatam:latest
+          gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev
 
-      # Construir y subir la imagen de Docker a Google Container Registry (test)
-      - name: Build and push Docker image to Google Container Registry (test)
-        if: (github.ref == 'refs/heads/develop' || github.base_ref == 'develop') && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
-        run: |
-          docker build -t gcr.io/lmlatam/mllatam:test .
-          docker push gcr.io/lmlatam/mllatam:test
+      - name: Build and push 
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:latest
 
   gcloud-upload:
     runs-on: ubuntu-latest
-    needs: build-and-push-docker 
+    needs: build-and-push-docker
     environment: production
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' }}
+
     steps:
-      # Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.head_ref }}
 
       - name: Google Auth
         id: auth
+        if: github.ref == 'refs/heads/main'
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCLOUDSECRET }}'
-          token_format: 'access_token'
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Deploy to Cloud Run (latest)
-        id: deploy-latest
+      - name: Deploy to Cloud Run
+        id: deploy
+        if: github.ref == 'refs/heads/main'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: mllatam
-          image: gcr.io/lmlatam/mllatam:latest
+          service: ${{ env.SERVICE }}
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          region: ${{ env.REGION }}

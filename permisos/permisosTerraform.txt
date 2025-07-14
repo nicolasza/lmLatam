@@ -1,0 +1,19 @@
+gcloud auth login
+
+gcloud config set project mllatam
+
+gcloud services enable run.googleapis.com --project="mllatam"
+
+gcloud services enable iam.googleapis.com --project="mllatam"
+
+gcloud iam service-accounts create terraform-deployer --project="mllatam" --description="Permite a Terraform crear infraestructura en GCP" --display-name="Terraform Deployer"
+
+gcloud projects add-iam-policy-binding "mllatam" --member="serviceAccount:terraform-deployer@mllatam.iam.gserviceaccount.com" --role="roles/run.admin" --project="mllatam"
+
+gcloud projects add-iam-policy-binding mllatam --member="serviceAccount:terraform-deployer@mllatam.iam.gserviceaccount.com" --role="roles/artifactregistry.admin" --project="mllatam"
+
+gcloud projects add-iam-policy-binding "mllatam" --member="serviceAccount:terraform-deployer@mllatam.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser" --project="mllatam"
+
+gcloud projects add-iam-policy-binding "mllatam" --member="serviceAccount:terraform-deployer@mllatam.iam.gserviceaccount.com" --role="roles/iam.serviceAccountAdmin" --project="mllatam"
+
+gcloud iam service-accounts keys create terraform-key.json  --iam-account="terraform-deployer@mllatam.iam.gserviceaccount.com"  --project="mllatam"
