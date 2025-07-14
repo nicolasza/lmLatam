@@ -23,3 +23,8 @@ VERSION DE PYTHON UTILIZADO: 3.9.21
 ## part 4
 * CI: cree el action en base a las pruebas implementadas en make
 * CD: creo el contenedor docker y lo actualizo en el gcloud , hubo dificultad con los permisos de google, primero probe con docker pero no tiene acceso desde gcloud, por lo que lo cambie para gcloud solamente.
+
+## part 5
+* Generacion de Infra- utilizacion de terraform para habilitar infrastructura.
+* modificacion de CD para utilizacion de nueva .
+* cree los comandos iniciales para dar permisos de acceso a infrastructura.

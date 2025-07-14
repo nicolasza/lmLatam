@@ -1,3 +1,7 @@
+# Detalles de implementacion
+
+para ver los detalles de implementacion dirigirse al archivo [challenge](/docs/challenge.md)
+
 # Software Engineer (ML & LLMs) Challenge
 
 ## Overview

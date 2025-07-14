@@ -1,0 +1,17 @@
+#login gcloud
+gcloud auth login
+
+#seteo de proyecto actual
+gcloud config set project "mllatam"
+
+#activo servicio de google
+gcloud services enable artifactregistry.googleapis.com --project="mllatam"
+
+#creo el repositorio
+gcloud artifacts repositories create ml-models --repository-format=docker --location=us-central1 --description="Repo de imágenes FastAPI modelos ML" --project="mllatam"
+
+#configuracion de docker
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+#build
+docker build -t us-central1-docker.pkg.dev/mllatam/ml-models/mldelay:latest .
